@@ -1,8 +1,9 @@
 extends Node2D
 
 
-const los = preload("res://los.gd")
-const Entity = preload("res://Entity.gd")
+const los = preload("res://objects/los.gd")
+const Entity = preload("res://objects/entity.gd")
+const EntityFactories = preload("res://objects/entity_factories.gd")
 
 
 const layer_explored = 0
@@ -16,10 +17,12 @@ var TILE = {
 	".": Vector2i(14, 0),
 	"@": Vector2i(0, 1),
 	
+	"A": Vector2i(0, 3),
 	"a": Vector2i(0, 4),
+	"O": Vector2i(14, 3),
 	"o": Vector2i(14, 4),
-	"t": Vector2i(19, 4),
 	"T": Vector2i(19, 3),
+	"t": Vector2i(19, 4),
 	
 	"0": Vector2i(16, 0),
 	"1": Vector2i(17, 0),
@@ -33,11 +36,19 @@ var TILE = {
 	"9": Vector2i(25, 0),
 }
 
-var tile_size = 10
+const tile_size = 10
 const window_width = 80
 const window_height = 50
+const half_window_height = Vector2i(window_width / 2, window_height / 2)
+const min_room_size = 5
+const max_room_size = 10
+const max_rooms = 25
+const min_monsters_per_room = 0
+const max_monsters_per_room = 2
 var map_width
 var map_height
+func is_in_bounds(x: int, y: int) -> bool:
+	return x > 0 and x < map_width and y > 0 and y < map_height
 func map_to_px(map_coords: Vector2i) -> Vector2:
 	return map_coords * tile_size
 @onready var tilemap = $TileMap
@@ -58,6 +69,10 @@ var rand = RandomNumberGenerator.new()
 @onready var debug_label = $DebugLabel
 
 var rooms: Array[Room]
+var entities: Array[Entity]
+func get_blocking_entity_at_location(location: Vector2i) -> Entity:
+	var blockers = entities.filter(func(e: Entity): return e.blocks_movement and e.position == location)
+	return blockers.front() if blockers.size() > 0 else null
 
 
 func set_tile(layer: int, pos: Vector2i, tile: Vector2i, walkable: bool, transparent: bool):
@@ -95,36 +110,39 @@ func generate_dungeon(width: int, height: int, player: Entity):
 			walkable.append(false)
 			transparent.append(false)
 			set_wall(x, y)
-			#set_fog(x, y)
+			set_fog(x, y)
 	# carve out some rooms
 	rooms.clear()
-	for r in range(20):
-		var room_width = rand.randi_range(3, 10)
+	for r in range(max_rooms):
+		# generate a size and position for the room within the bounds of the map
+		var room_width = rand.randi_range(min_room_size, max_room_size)
 		var room_x = rand.randi_range(1, map_width - room_width - 2)
-		var room_height = rand.randi_range(3, 10)
+		var room_height = rand.randi_range(min_room_size, max_room_size)
 		var room_y = rand.randi_range(1, map_height - room_height - 2)
 		var new_room = Rect2i(room_x, room_y, room_width, room_height)
+		
 		# if it intersects with an existing room, discard and try again
-		if rooms.any(func(room): room.rect.intersects(new_room)):
+		if rooms.any(func(room): return room.rect.intersects(new_room)):
 			continue
 		# carve the room into the map
 		carve_room(new_room)
 		# add it to the list
 		rooms.append(Room.new(new_room))
+		# also add some enemies to it
+		place_entities(new_room)
 	carve_tunnels(rooms)
 	# set player position to a starting room
 	player.position = rooms[0].rect.get_center()
 	# shift tilemap so that player is in centre of the window
-	tilemap.position = map_to_px(Vector2i(window_width / 2, window_height / 2))
-	tilemap.position -= map_to_px(player.position)
+	tilemap.position = map_to_px(half_window_height - player.position)
 	# time to generate?
 	var end_time = Time.get_ticks_msec()
 	debug_label.text = "Map generated in " + str(end_time - start_time) + "ms"
 
 
 func carve_room(room: Rect2i):
-	for y in range(room.position.y, room.end.y):
-		for x in range(room.position.x, room.end.x):
+	for y in range(room.position.y + 1, room.end.y):
+		for x in range(room.position.x + 1, room.end.x):
 			set_floor(x, y)
 
 
@@ -133,6 +151,25 @@ func carve_tunnel(a: Vector2i, b: Vector2i):
 		set_floor(a.x, y)
 	for x in range(a.x, b.x, 1 if b.x > a.x else -1):
 		set_floor(x, b.y)
+
+
+func place_entities(room: Rect2i):
+	var num_monsters = rand.randi_range(min_monsters_per_room, max_monsters_per_room)
+	
+	for m in range(num_monsters + 1):
+		# select random spot in room
+		var x = rand.randi_range(room.position.x + 1, room.end.x - 1)
+		var y = rand.randi_range(room.position.y + 1, room.end.y - 1)
+		
+		# ensure entity's spot not already taken
+		var e: Entity
+		#if not entities.any(func(e): return e.position == Vector2i(x, y)):
+		var v = rand.randf()
+		if v < 0.8:
+			e = EntityFactories.orc.spawn(x, y)
+		else:
+			e = EntityFactories.troll.spawn(x, y)
+		entities.append(e)
 
 
 class Connection:
@@ -187,6 +224,7 @@ func reveal_visible_tiles(position: Vector2i, radius: int):
 	tilemap.clear_layer(layer_visible)
 	#var tiles = list_visible_tiles_in_range(position, radius)
 	var tiles = los.get_visible_points(position, Callable(self, "is_transparent"), 10)
+	# draw all tiles visible to player, hiding all fog
 	for t in tiles:
 		var tile = tilemap.get_cell_atlas_coords(layer_explored, t)
 		tilemap.set_cell(layer_visible, t, 0, tile, 0)
@@ -198,8 +236,13 @@ func _process(_delta):
 	pass
 
 
-func draw_entities(entities: Array[Entity]):
+func draw_entities(player: Entity):
+	var tiles = los.get_visible_points(player.position, Callable(self, "is_transparent"), 10)
 	# clear the entity layer ready to redraw
 	tilemap.clear_layer(layer_entities)
+	# draw all entities visible to player
 	for e in entities:
-		tilemap.set_cell(layer_entities, e.position, 0, TILE[e.char], 0)
+		if tiles.any(func (v): return e.position == v):
+			tilemap.set_cell(layer_entities, e.position, 0, TILE[e.char], 0)
+	# draw the player
+	tilemap.set_cell(layer_entities, player.position, 0, TILE[player.char], 0)

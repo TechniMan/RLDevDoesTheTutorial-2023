@@ -22,10 +22,19 @@ static func get_visible_points(vantage_point: Vector2i, get_allows_light: Callab
 	los_cache.append(vantage_point)
 	for region in range(8):
 		_cast_light(
-		los_cache, get_allows_light,
-		vantage_point.x, vantage_point.y, 1, 1.0, 0.0, max_distance,
-		MULT[0][region], MULT[1][region],
-		MULT[2][region], MULT[3][region])
+			los_cache,
+			get_allows_light,
+			vantage_point.x,
+			vantage_point.y,
+			1,
+			1.0,
+			0.0,
+			max_distance,
+			MULT[0][region],
+			MULT[1][region],
+			MULT[2][region],
+			MULT[3][region]
+		)
 	return los_cache
 
 
