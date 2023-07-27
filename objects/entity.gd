@@ -27,6 +27,11 @@ func move(dX: int, dY: int):
 	position.y += dY
 
 
+func place_at(x: int, y: int) -> void:
+	position.x = x
+	position.y = y
+
+
 func spawn(x: int, y: int) -> Entity:
 	var clone = get_script().new(
 		x,
