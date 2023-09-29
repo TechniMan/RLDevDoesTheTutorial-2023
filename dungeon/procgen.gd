@@ -1,17 +1,12 @@
-extends Object
+extends Resource
 
-const EntityFactories = preload("res://objects/entity_factories.gd")
-const Map = preload("res://objects/map.gd")
-const Tiles = preload("res://objects/tile_types.gd")
+const Entities = preload("res://entities/entities.gd")
+const Map = preload("res://dungeon/map.gd")
+const Tiles = preload("res://dungeon/tiles.gd")
+const Room = preload("res://dungeon/room.gd")
+
 
 static var rand = RandomNumberGenerator.new()
-
-
-class Room:
-	var rect: Rect2i
-	var connected_centres: Array[Vector2i]
-	func _init(_rect: Rect2i):
-		rect = _rect
 
 
 static func generate_dungeon(
@@ -80,9 +75,9 @@ static func place_entities(room: Rect2i, num_monsters: int, new_map: Map):
 		#if not entities.any(func(e): return e.position == Vector2i(x, y)):
 		var v = rand.randf()
 		if v < 0.8:
-			e = EntityFactories.orc.spawn(x, y)
+			e = Entities.ORC.spawn(x, y)
 		else:
-			e = EntityFactories.troll.spawn(x, y)
+			e = Entities.TROLL.spawn(x, y)
 		new_map.entities.append(e)
 
 

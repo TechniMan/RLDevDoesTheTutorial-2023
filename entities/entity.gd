@@ -1,4 +1,4 @@
-extends Object
+extends Resource
 class_name Entity
 
 
@@ -22,7 +22,7 @@ func _init(
 	blocks_movement = _blocks_movement
 
 
-func move(dX: int, dY: int):
+func move(dX: int, dY: int) -> void:
 	position.x += dX
 	position.y += dY
 

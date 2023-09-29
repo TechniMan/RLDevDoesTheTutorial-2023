@@ -1,4 +1,4 @@
-extends Object
+extends Resource
 class_name Tile
 
 
@@ -13,8 +13,3 @@ func _init(_walkable: bool, _transparent: bool, _char: String):
 	transparent = _transparent
 	char = _char
 	colour = Color.WHITE
-
-
-static var FLOOR = Tile.new(true, true, ".")
-static var WALL = Tile.new(false, false, "#")
-static var FOG = Tile.new(true, false, "~")

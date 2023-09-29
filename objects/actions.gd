@@ -1,24 +1,33 @@
-extends Object
+extends Resource
+class_name Action
 
 
-const Entity = preload("res://objects/entity.gd")
-const Map = preload("res://objects/map.gd")
+const Entity = preload("res://entities/entity.gd")
+const Map = preload("res://dungeon/map.gd")
 
 
-class Action:
-	var entity: Entity
-	var map: Map
-	
-	func _init(_entity: Entity, _map: Map):
-		entity = _entity
-		map = _map
-	
-	func perform():
-		pass
+# ACTION BASE MEMBERS
+
+var entity: Entity
+var map: Map
+
+func _init(_entity: Entity, _map: Map):
+	entity = _entity
+	map = _map
+
+func perform():
+	pass
+
+# END ACTION BASE MEMBERS
 
 
 class EscapeAction extends Action:
 	pass
+
+
+class WaitAction extends Action:
+	func perform():
+		pass
 
 
 class ActionWithDirection extends Action:

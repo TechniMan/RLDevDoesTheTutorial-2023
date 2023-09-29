@@ -2,14 +2,15 @@ extends Node2D
 
 
 # map
-const Map = preload("res://objects/map.gd")
+const ProcGen = preload("res://dungeon/procgen.gd")
+const Map = preload("res://dungeon/map.gd")
 var map: Map
-const ProcGen = preload("res://objects/procgen.gd")
 @onready var tile_map = $TileMap
 
 # entities
-const Entity = preload("res://objects/entity.gd")
-const EntityFactories = preload("res://objects/entity_factories.gd")
+const Entity = preload("res://entities/entity.gd")
+const Actor = preload("res://entities/actor.gd")
+const Entities = preload("res://entities/entities.gd")
 var player: Entity
 
 # event handler
@@ -19,7 +20,7 @@ var input_handler = preload("res://objects/input_handlers.gd").new()
 
 func _ready():
 	# init player
-	player = EntityFactories.player
+	player = Entities.PLAYER
 	
 	# set up a basic dungeon of rooms; also sets player position
 	map = ProcGen.generate_dungeon(
@@ -50,4 +51,5 @@ func _process(delta):
 
 func handle_enemy_turns():
 	for e in map.entities:
-		print("The " + e.name + " wonders when it will get to take a real turn.")
+		if (e as Actor).ai:
+			(e as Actor).ai.perform(player, map)
