@@ -180,7 +180,7 @@ func draw_map(tilemap: TileMap, player: Entity):
 			# A lower number means more enemies will crowd behind each other in
 			# hallways. A higher number means enemies will take longer paths in
 			# order to surround the player.
-			grid.set_point_weight_scale(Vector2i(e.position.x, e.position.y), 1)
+			grid.set_point_weight_scale(Vector2i(e.position.x, e.position.y), 10)
 	
 	# draw the player
 	tilemap.set_cell(layer_entities, player.position, 0, CHAR_TO_ATLAS[player.character], 0)

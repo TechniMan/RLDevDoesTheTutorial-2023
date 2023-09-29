@@ -13,14 +13,19 @@ const Actor = preload("res://entities/actor.gd")
 const Entities = preload("res://entities/entities.gd")
 var player: Entity
 
+# gui
+@onready var player_health_bar = $PlayerHealthBar
+
 # event handler
 const Actions = preload("res://objects/actions.gd")
-var input_handler = preload("res://objects/input_handlers.gd").new()
+const InputHandlers = preload("res://objects/input_handlers.gd")
+var input_handler: InputHandler
 
 
 func _ready():
 	# init player
 	player = Entities.SpawnPlayer()
+	input_handler = InputHandlers.MainGameInputHandler.new()
 	
 	# set up a basic dungeon of rooms; also sets player position
 	map = ProcGen.generate_dungeon(
@@ -44,6 +49,7 @@ func _process(_delta):
 		# if player is dead
 		if player.fighter.get_hp() <= 0:
 			print("You died!")
+			input_handler = InputHandlers.GameOverInputHandler.new()
 			return
 		
 		# player takes their turn, followed by the enemies
@@ -52,6 +58,7 @@ func _process(_delta):
 		
 		# DRAW only need to update view after input from player
 		map.draw_map(tile_map, player)
+		player_health_bar.value = player.fighter._current_hp
 
 
 func handle_enemy_turns():
