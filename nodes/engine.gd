@@ -20,7 +20,7 @@ var input_handler = preload("res://objects/input_handlers.gd").new()
 
 func _ready():
 	# init player
-	player = Entities.PLAYER
+	player = Entities.SpawnPlayer()
 	
 	# set up a basic dungeon of rooms; also sets player position
 	map = ProcGen.generate_dungeon(
@@ -34,7 +34,7 @@ func _ready():
 	map.draw_map(tile_map, player)
 
 
-func _process(delta):
+func _process(_delta):
 	# INPUT
 	var action = input_handler.dispatch(player, map)
 	
@@ -50,6 +50,6 @@ func _process(delta):
 
 
 func handle_enemy_turns():
-	for e in map.entities:
-		if (e as Actor).ai:
-			(e as Actor).ai.perform(player, map)
+	for a in map.get_actors():
+		if a.ai:
+			a.ai.perform(player, map)

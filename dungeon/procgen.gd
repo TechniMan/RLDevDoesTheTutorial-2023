@@ -20,6 +20,7 @@ static func generate_dungeon(
 	player: Entity
 ) -> Map:
 	var new_map = Map.new(map_width, map_height)
+	new_map.entities.append(player)
 	# initialise map as all walls
 	for y in map_height:
 		for x in map_width:
@@ -75,9 +76,9 @@ static func place_entities(room: Rect2i, num_monsters: int, new_map: Map):
 		#if not entities.any(func(e): return e.position == Vector2i(x, y)):
 		var v = rand.randf()
 		if v < 0.8:
-			e = Entities.ORC.spawn(x, y)
+			e = Entities.SpawnOrc(x, y)
 		else:
-			e = Entities.TROLL.spawn(x, y)
+			e = Entities.SpawnTroll(x, y)
 		new_map.entities.append(e)
 
 

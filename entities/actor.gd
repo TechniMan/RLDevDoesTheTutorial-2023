@@ -36,7 +36,7 @@ func spawn(x: int, y: int) -> Entity:
 	var clone = get_script().new(
 		x,
 		y,
-		char,
+		character,
 		name,
 		blocks_movement,
 		ai,

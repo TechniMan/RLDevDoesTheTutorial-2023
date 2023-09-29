@@ -18,7 +18,7 @@ const MULT = [
 
 # Returns a set of all points visible from the given vantage point.
 static func get_visible_points(vantage_point: Vector2i, get_allows_light: Callable, max_distance: int) -> Array[Vector2i]:
-	var los_cache: Array[Vector2i]
+	var los_cache: Array[Vector2i] = []
 	los_cache.append(vantage_point)
 	for region in range(8):
 		_cast_light(

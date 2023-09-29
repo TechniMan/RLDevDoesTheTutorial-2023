@@ -33,12 +33,15 @@ class Fighter extends Component:
 		return _current_hp
 	
 	func set_hp(value: int):
-		# set current_hp to no lesser than 0 and no greater than max_hp
+		# clamp current_hp between 0 and max_hp
 		_current_hp = maxi(0, mini(value, _max_hp))
+	
+	func take_damage(damage: int):
+		_current_hp -= damage
 
 
 class BaseAI extends Component:
-	func perform(target: Entity, map: Map) -> void:
+	func perform(_target: Entity, _map: Map) -> void:
 		pass
 	
 	## Compute and return path to destination.
@@ -51,18 +54,21 @@ class BaseAI extends Component:
 class HostileEnemy extends BaseAI:
 	var path: Array[Vector2i]
 	
-	func perform(target: Entity, map: Map) -> void:
+	func perform(target: Entity, map: Map):
 		var dx = target.position.x - owner.position.x
 		var dy = target.position.y - owner.position.y
 		var distance = maxi(absi(dx), abs(dy)) # Chebyshev distance: diag equidistant to orthog
 		
+		# is owning entity visible to player
 		if map.is_visible(owner.position.x, owner.position.y):
+			# if in melee range
 			if distance <= 1:
 				return Action.MeleeAction.new(owner, map, dx, dy).perform()
+			# else, calculate path to player
 			path = get_path_to(target.position, map)
 		
 		if path:
-			var destination = path.pop_front()
-			return Action.MoveAction.new(owner, map, destination.x - owner.x, destination.y - owner.y).perform()
+			var destination = path[1]
+			return Action.MoveAction.new(owner, map, destination.x - owner.position.x, destination.y - owner.position.y).perform()
 		
 		return Action.WaitAction.new(owner, map).perform()

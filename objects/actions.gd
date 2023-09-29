@@ -3,15 +3,16 @@ class_name Action
 
 
 const Entity = preload("res://entities/entity.gd")
+const Actor = preload("res://entities/actor.gd")
 const Map = preload("res://dungeon/map.gd")
 
 
 # ACTION BASE MEMBERS
 
-var entity: Entity
+var entity: Actor
 var map: Map
 
-func _init(_entity: Entity, _map: Map):
+func _init(_entity: Actor, _map: Map):
 	entity = _entity
 	map = _map
 
@@ -35,19 +36,21 @@ class ActionWithDirection extends Action:
 	var dy: int
 	var destination: Vector2i
 	var blocking_entity: Entity
+	var target_actor: Actor
 	
-	func _init(_entity: Entity, _map: Map, _dx: int, _dy: int):
+	func _init(_entity: Actor, _map: Map, _dx: int, _dy: int):
 		entity = _entity
 		map = _map
 		dx = _dx
 		dy = _dy
 		destination = entity.position + Vector2i(dx, dy)
 		blocking_entity = map.get_blocking_entity_at_location(destination)
+		target_actor = map.get_actor_at_location(destination)
 
 
 class MoveAction extends ActionWithDirection:
 	func perform():
-		var is_zero = dx == 0 and dy == 0
+		#var is_zero = dx == 0 and dy == 0
 		# ensure we can move this way and are not blocked
 		if not map.is_in_bounds(destination.x, destination.y):
 			return
@@ -61,16 +64,26 @@ class MoveAction extends ActionWithDirection:
 
 class MeleeAction extends ActionWithDirection:
 	func perform():
-		var destination = entity.position + Vector2i(dx, dy)
-		if blocking_entity == null:
+		#var destination = entity.position + Vector2i(dx, dy)
+		if target_actor == null:
 			return
 		
-		print("You kick the " + blocking_entity.name + ", much to its annoyance!")
+		var damage = entity.fighter.power - target_actor.fighter.defense
+
+		var attack_description = "{self} attacks {target}".format({
+			"self": entity.name,
+			"target": target_actor.name
+		})
+		if damage > 0:
+			print(attack_description + " for " + str(damage) + " hit points.")
+			target_actor.fighter.take_damage(damage)
+		else:
+			print(attack_description + " but does no damage.")
 
 
 class BumpAction extends ActionWithDirection:
 	func perform():
-		if blocking_entity:
+		if target_actor:
 			return MeleeAction.new(entity, map, dx, dy).perform()
 		else:
 			return MoveAction.new(entity, map, dx, dy).perform()

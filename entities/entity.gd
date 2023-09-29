@@ -2,7 +2,7 @@ extends Resource
 class_name Entity
 
 
-var char: String
+var character: String
 var position: Vector2i
 const sight_range: int = 10
 var name: String
@@ -16,7 +16,7 @@ func _init(
 	_name: String = "<Unnamed>",
 	_blocks_movement: bool = false
 ):
-	char = _char
+	character = _char
 	position = Vector2i(_x, _y)
 	name = _name
 	blocks_movement = _blocks_movement
@@ -36,7 +36,7 @@ func spawn(x: int, y: int) -> Entity:
 	var clone = get_script().new(
 		x,
 		y,
-		char,
+		character,
 		name,
 		blocks_movement
 	)

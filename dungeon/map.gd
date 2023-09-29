@@ -1,4 +1,5 @@
 extends Resource
+class_name Map
 
 
 const los = preload("res://objects/los.gd")
@@ -14,19 +15,20 @@ const layer_entities = 2
 
 
 const CHAR_TO_ATLAS = {
+	# symbols
 	" ": Vector2i(0, 0),
 	"#": Vector2i(3, 0),
 	".": Vector2i(14, 0),
 	"@": Vector2i(0, 1),
 	"~": Vector2i(10, 1),
-	
+	# letters
 	"A": Vector2i(0, 3),
 	"a": Vector2i(0, 4),
 	"O": Vector2i(14, 3),
 	"o": Vector2i(14, 4),
 	"T": Vector2i(19, 3),
 	"t": Vector2i(19, 4),
-	
+	# numbers
 	"0": Vector2i(16, 0),
 	"1": Vector2i(17, 0),
 	"2": Vector2i(18, 0),
@@ -40,10 +42,12 @@ const CHAR_TO_ATLAS = {
 }
 
 
+# MAP MEMBERS
+
 const tile_size = 10
 const window_width = 80
 const window_height = 50
-const half_window_height = Vector2i(window_width / 2, window_height / 2)
+const half_window_height = Vector2i(window_width / 2.0, window_height / 2.0)
 var map_width: int
 var map_height: int
 
@@ -78,6 +82,8 @@ func explore(x: int, y: int):
 var entities: Array[Entity]
 var rooms: Array[Room]
 
+# END MAP MEMBERS
+
 
 func _init(width: int, height: int):
 	map_width = width
@@ -92,11 +98,28 @@ func _init(width: int, height: int):
 	
 	# initialise cost array
 	grid = AStarGrid2D.new()
+	grid.set_region(Rect2i(0, 0, map_width, map_height))
+	grid.update()
+
+
+func get_actors() -> Array[Actor]:
+	var actors: Array[Actor] = []
+	for e in entities:
+		if e is Actor:
+			actors.append(e)
+	return actors
 
 
 func get_blocking_entity_at_location(location: Vector2i) -> Entity:
 	var blockers = entities.filter(func(e: Entity): return e.blocks_movement and e.position == location)
 	return blockers.front() if blockers.size() > 0 else null
+
+
+func get_actor_at_location(location: Vector2i) -> Actor:
+	for a in get_actors():
+		if a.position == location:
+			return a
+	return null
 
 
 ## Finds best path from from to to; if no valid path exists, returns empty
@@ -112,7 +135,7 @@ func draw_map(tilemap: TileMap, player: Entity):
 	tilemap.clear_layer(layer_entities)
 	
 	# shift tilemap so that player is in centre of the window
-	tilemap.position = self.map_to_px(half_window_height - player.position)
+	tilemap.position = Map.map_to_px(half_window_height - player.position)
 	
 	# set up the nav grid ready for filling in
 	grid.clear()
@@ -129,13 +152,13 @@ func draw_map(tilemap: TileMap, player: Entity):
 		for x in range(map_width):
 			var v = Vector2i(x, y)
 			if is_explored(x, y):
-				tilemap.set_cell(layer_explored, v, 0, CHAR_TO_ATLAS[get_tile(x, y).char])
+				tilemap.set_cell(layer_explored, v, 0, CHAR_TO_ATLAS[get_tile(x, y).character])
 			else:
-				tilemap.set_cell(layer_explored, v, 0, CHAR_TO_ATLAS[Tiles.FOG.char])
+				tilemap.set_cell(layer_explored, v, 0, CHAR_TO_ATLAS[Tiles.FOG.character])
 			
 			# fill in light visible tiles
 			if visible_points.find(v) != -1:
-				tilemap.set_cell(layer_visible, v, 0, CHAR_TO_ATLAS[get_tile(x, y).char])
+				tilemap.set_cell(layer_visible, v, 0, CHAR_TO_ATLAS[get_tile(x, y).character])
 				explore(x, y)
 				set_visible(x, y, true)
 			else:
@@ -143,19 +166,19 @@ func draw_map(tilemap: TileMap, player: Entity):
 			
 			# fill nav grid with walkability values
 			grid.set_point_solid(v, is_walkable(x, y))
-	
+	grid.update()
 	# THEN DRAW THE ENTITIES #
 	
 	# draw all entities visible to player
 	for e in entities:
 		if is_visible(e.position.x, e.position.y):
-			tilemap.set_cell(layer_entities, e.position, 0, CHAR_TO_ATLAS[e.char], 0)
+			tilemap.set_cell(layer_entities, e.position, 0, CHAR_TO_ATLAS[e.character], 0)
 		# and add entity to nav grid
 		if e.blocks_movement:
 			# A lower number means more enemies will crowd behind each other in
 			# hallways. A higher number means enemies will take longer paths in
 			# order to surround the player.
-			grid.set_point_weight_scale(Vector2i(e.position.x, e.position.y), 10)
+			grid.set_point_weight_scale(Vector2i(e.position.x, e.position.y), 1)
 	
 	# draw the player
-	tilemap.set_cell(layer_entities, player.position, 0, CHAR_TO_ATLAS[player.char], 0)
+	tilemap.set_cell(layer_entities, player.position, 0, CHAR_TO_ATLAS[player.character], 0)
