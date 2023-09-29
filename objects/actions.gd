@@ -50,7 +50,6 @@ class ActionWithDirection extends Action:
 
 class MoveAction extends ActionWithDirection:
 	func perform():
-		#var is_zero = dx == 0 and dy == 0
 		# ensure we can move this way and are not blocked
 		if not map.is_in_bounds(destination.x, destination.y):
 			return
@@ -64,7 +63,6 @@ class MoveAction extends ActionWithDirection:
 
 class MeleeAction extends ActionWithDirection:
 	func perform():
-		#var destination = entity.position + Vector2i(dx, dy)
 		if target_actor == null:
 			return
 		

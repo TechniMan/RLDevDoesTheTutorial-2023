@@ -13,12 +13,13 @@ func _init(
 	_x: int = 0,
 	_y: int = 0,
 	_char: String = "?",
+	_colour: Color = Color.WHITE,
 	_name: String = "<Unnamed>",
 	_blocks_movement: bool = false,
 	_ai: Components.BaseAI = null,
 	_fighter: Components.Fighter = null
 ):
-	super(_x, _y, _char, _name, _blocks_movement)
+	super(_x, _y, _char, _colour, _name, _blocks_movement, RenderOrder.ACTOR)
 	
 	ai = _ai
 	if ai != null:

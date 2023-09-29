@@ -18,6 +18,7 @@ const CHAR_TO_ATLAS = {
 	# symbols
 	" ": Vector2i(0, 0),
 	"#": Vector2i(3, 0),
+	"%": Vector2i(5, 0),
 	".": Vector2i(14, 0),
 	"@": Vector2i(0, 1),
 	"~": Vector2i(10, 1),
@@ -105,7 +106,7 @@ func _init(width: int, height: int):
 func get_actors() -> Array[Actor]:
 	var actors: Array[Actor] = []
 	for e in entities:
-		if e is Actor:
+		if e is Actor and (e as Actor).fighter.is_alive:
 			actors.append(e)
 	return actors
 
@@ -170,6 +171,7 @@ func draw_map(tilemap: TileMap, player: Entity):
 	# THEN DRAW THE ENTITIES #
 	
 	# draw all entities visible to player
+	entities.sort_custom(func(a, b): return a.render_order < b.render_order)
 	for e in entities:
 		if is_visible(e.position.x, e.position.y):
 			tilemap.set_cell(layer_entities, e.position, 0, CHAR_TO_ATLAS[e.character], 0)

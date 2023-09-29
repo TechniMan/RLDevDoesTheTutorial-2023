@@ -41,6 +41,11 @@ func _process(_delta):
 	if action is Actions.EscapeAction:
 		get_tree().quit()
 	elif action != null:
+		# if player is dead
+		if player.fighter.get_hp() <= 0:
+			print("You died!")
+			return
+		
 		# player takes their turn, followed by the enemies
 		action.perform()
 		handle_enemy_turns()

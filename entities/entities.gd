@@ -10,6 +10,7 @@ const Fighter = Components.Fighter
 static func SpawnPlayer() -> Actor:
 	return Actor.new(
 		0, 0, "@",
+		Color.WHITE,
 		"Player",
 		true,
 		null,
@@ -19,6 +20,7 @@ static func SpawnPlayer() -> Actor:
 static func SpawnOrc(x: int, y: int) -> Actor:
 	return Actor.new(
 		x, y, "o",
+		Color.OLIVE,
 		"Orc",
 		true,
 		HostileEnemy.new(null),
@@ -28,6 +30,7 @@ static func SpawnOrc(x: int, y: int) -> Actor:
 static func SpawnTroll(x: int, y: int) -> Actor:
 	return Actor.new(
 		x, y, "T",
+		Color.DARK_OLIVE_GREEN,
 		"Troll",
 		true,
 		HostileEnemy.new(null),
